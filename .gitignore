@@ -1,8 +1,15 @@
-# build target
-target
+# Rust build artifacts
+debug/
+target/
+Cargo.lock
 
-# generated package
-pkg
+# WASM-specific build outputs
+verifier/pkg/
+pkg/
+pkg-node/
+pkg-web/
+dist/
+build/
 
 # elfs
 elfs
@@ -10,10 +17,17 @@ elf
 
 # env
 .env
+.env.local
 
+# OS-specific files
 .DS_Store
+Thumbs.db
 
+# Node.js dependencies
 node_modules
+package-lock.json
+yarn.lock
 
 /example/binaries
 /example/json
+

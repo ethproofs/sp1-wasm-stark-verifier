@@ -1,73 +1,84 @@
-# SP1 Wasm verification example
+# SP1 Wasm Stark Verifier
 
-This repo demonstrates how to verify "compressed," Groth16, and Plonk proofs in a browser. We wrap the [`sp1-verifier`](https://github.com/succinctlabs/sp1) crate in Wasm bindings, and invoke it from JavaScript (Node.js).
+WebAssembly bindings for the SP1 STARK verifier.
 
-In SP1, proofs are produced in multiple stages:
-- SP1 splits a single execution of a RISC-V program into several "shards" and proves each of them independently.
-- SP1 combines these proofs through a process called "recursion" into a single proof, which we call a "compressed" proof.
-- Finally, SP1 wraps the compressed proof in a non-interactive ZK (NIZK) proof, which may either be Groth16 or Plonk.
+## Overview
 
-The `sp1-verifier` crate supports verifying proofs from either of the last two stages, which are precisely the kind of proofs that describe the entirety of a RISC-V program's execution.
-
-> ⚠️ NOTE: At the moment, `sp1-verifier` does not support single-shard compressed proofs. This is only of concern for short program executions, since long program executions inevitably require multiple shards. Furthermore, `sp1-verifier` provides an informative error when it detects a single-shard compressed proof.
-
-## Repo overview
-
-- `verifier`: A thin wrapper around `sp1-verifier` used to generate a Wasm module and bindings.
-- `example/fibonacci-program`: A simple fibonacci SP1 program to verify.
-- `example/fibonacci-script`: A simple script to generate proofs in a JSON format.
-- `example/wasm_example`: A short JavaScript example that verifies proofs in Wasm.
+This module builds the `verify_compressed` function from `sp1-verifier` into WebAssembly, enabling STARK proof verification to run directly in both web browsers and Node.js environments.
 
 ## Usage
 
-### TL;DR
-
-Use the [Just](https://github.com/casey/just) recipes in the `justfile`. Given a fresh clone of this repository, the `init` recipe performs all tasks needed to setup and run the example.
-
-To manually perform these tasks, follow the instructions below.
-
-### Wasm Bindings
-
-First, generate the Wasm library for the verifier. From the `verifier` directory, run
+### Installation
 
 ```bash
-wasm-pack build --target nodejs --dev 
+npm install @ethproofs/sp1-wasm-stark-verifier
 ```
 
-This will generate Wasm bindings for the Rust functions in [`verifier/src/lib.rs`](verifier/src/lib.rs).
+### React Integration
 
-> ⚠️ NOTE: Generating Wasm bindings in dev mode will result in drastically slower verification times.
-> Generate bindings in release mode by replacing `--dev` with `--release`.
+```typescript
+import init, { main, verify_stark } from '@ethproofs/sp1-wasm-stark-verifier';
 
-As an example, the following snippet provides Wasm bindings for the `verify_groth16` function:
+await init(); // Initialize WASM (if needed)
+main(); // Initialize panic hook
 
-```rust,noplayground
-#[wasm_bindgen]
-pub fn verify_groth16(proof: &[u8], public_inputs: &[u8], sp1_vk_hash: &str) -> bool {
-    Groth16Verifier::verify(proof, public_inputs, sp1_vk_hash, *GROTH16_VK_BYTES).is_ok()
-}
+// Verify a proof
+const isValid = verify_compressed(proofBytes, publicInputsBytes, vkBytes);
 ```
 
-### Generate proofs
+### Node.js Usage
 
-To generate and save proofs for the first time, in the `example/script` directory, run `cargo run --release -- --mode <mode> --prove`, where `<mode>` is one of `groth16, plonk, compressed`. This will do two things:
+```javascript
+const { main, verify_stark } = require('@ethproofs/sp1-wasm-stark-verifier');
 
-1. Using SP1, generate and save proofs to the `example/binaries` directory.
-2. Encode the saved proofs to JSON and write them to `example/json`. 
+// The Node.js version initializes automatically
 
-After the proofs are saved to `example/binaries` for the first time, one may omit the `--prove` flag to skip the first step.
+main(); // Initialize panic hook
+const result = verify_compressed(proofBytes, publicInputsBytes, vkBytes);
+```
 
-For the proof generation, saving, and serialization logic, see [`example/script/src/main.rs`](example/script/src/main.rs).
+## Testing
 
-### Verify proofs in Wasm
-
-To verify proofs in Wasm, run the following commands from the `example/wasm_example` directory:
+### Installation
 
 ```bash
-# Install Node.js dependencies.
-pnpm install
-# Run the Node.js test program.
-pnpm run test
+npm install
 ```
 
-This runs [`main.js`](example/wasm_example/main.js), which first reads the proof data from the artifacts in `example/json` into a Wasm-friendly format. Then, for each proof, it calls the appropriate verification function via the generated Wasm bindings. Finally, it prints verification durations and (if they are easily available) the public values.
+### Prerequisites
+
+- [sp1](https://docs.succinct.xyz/docs/sp1/getting-started/install)
+- [wasm-pack](https://github.com/drager/wasm-pack)
+
+### Building
+
+```bash
+# Build for all targets
+npm run build:all
+```
+
+### Node.js Example
+
+```bash
+npm run test:node
+```
+
+This runs the Node.js example that loads proof and verification key files from the filesystem and verifies them.
+
+### Browser Example
+
+```bash
+npm run test
+```
+
+This starts a local HTTP server at `http://localhost:8080` with a browser example that demonstrates:
+
+- Loading the WASM module in a browser environment
+- File upload interface for proof and verification key files
+- Interactive STARK proof verification
+- Performance metrics and detailed logging
+- Error handling and user feedback
+
+The browser example provides a complete UI for testing the WASM verifier with drag-and-drop file selection and real-time verification results.
+
+**Note:** The browser example requires files to be served over HTTP due to WASM CORS restrictions. The included server script handles this automatically.

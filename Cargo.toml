@@ -14,3 +14,5 @@ sp1-sdk = { git = "https://github.com/succinctlabs/sp1.git", rev = "5868f0bf37c2
 sp1-zkvm = { git = "https://github.com/succinctlabs/sp1.git", rev = "5868f0bf37c216e9906d272d0baba98a94d71b91" }
 sp1-build = { git = "https://github.com/succinctlabs/sp1.git", rev = "5868f0bf37c216e9906d272d0baba98a94d71b91" }
 sp1-verifier = { git = "https://github.com/succinctlabs/sp1.git", rev = "5868f0bf37c216e9906d272d0baba98a94d71b91", default-features = false }
+sp1-primitives = { git = "https://github.com/succinctlabs/sp1.git", rev = "5868f0bf37c216e9906d272d0baba98a94d71b91" }
+sp1-stark = { git = "https://github.com/succinctlabs/sp1.git", rev = "5868f0bf37c216e9906d272d0baba98a94d71b91" }
